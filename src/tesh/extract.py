@@ -173,7 +173,7 @@ def extract_blocks(session: ShellSession, verbose: bool) -> None:
     blocks = []
 
     for line in session.lines:
-        # remove mkdocs style of code anotations
+        # remove mkdocs style of code annotations
         line = re.sub(r"\# \(.*\)!$|\# \(.*\)$", "", line).strip()
         if m := prompt.match(line):
             if new_block.command:
