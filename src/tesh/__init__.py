@@ -48,12 +48,11 @@ def tesh(paths: t.Set[str], ext: str, verbose: bool, debug: bool) -> None:
         for session in sessions:
             with tempfile.TemporaryDirectory() as tmpdirname:
                 tmpdir = Path(tmpdirname)
-                for script in [session.setup, session.teardown]:
-                    if script:
-                        script_path = Path(filename).parent / script
-                        if not os.path.exists(script_path):
-                            fail("File does not exist:", cript_path)
-                        shutil.copyfile(script_path, tmpdir / script)
+                if session.setup:
+                    setup = Path(filename).parent / session.setup
+                    if not os.path.exists(setup):
+                        fail("Setup file does not exist:", setup)
+                    shutil.copyfile(setup, tmpdir / session.setup)
                 with changedir(tmpdir):
                     print("  ✨ Running", session.id_, " ", end="", flush=True)  # noqa
                     extract_blocks(session, verbose)
