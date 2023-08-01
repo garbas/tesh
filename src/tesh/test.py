@@ -62,10 +62,12 @@ class spawn(pexpect.spawn):
 def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> None:
     """Run testable sessions in a pexpect shell."""
     with Path(filename).parent:
+        env = os.environ.copy()
+        env.update({"PS1": "$ "})
         shell = spawn(
             "bash --norc --noprofile",
             encoding="utf-8",
-            env={"PS1": "$ ", "PATH": os.environ["PATH"], "HOME": os.getcwd()},
+            env=env,
             # The (height, width) of the TTY commands run in. 24 is the default.
             # The width needs to be larger than the longest command, as
             # otherwise the command string gets truncated and the shell.expect
@@ -137,12 +139,18 @@ def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> No
                     invoke_debug(shell, block)
                 else:
                     sys.exit(1)
+            if session.teardown:
+                shell.sendline("source " + session.teardown)
+                shell.expect(get_prompt_regex(session))
+        if session.teardown:
+            shell.sendline("source " + session.teardown)
+            shell.expect(get_prompt_regex(session))
 
 
 def get_actual_output(shell: spawn) -> str:
     """Massage shell output to be able to compare it."""
     assert isinstance(shell.before, str)
-    actual_output = shell.before.rstrip().replace("\r\n", "\n")
+    actual_output = shell.before.rstrip().replace("\r\n", "\n").replace("\r", "")
     return "\n".join([line.rstrip() for line in actual_output.split("\n")])
 
 

@@ -40,6 +40,7 @@ class ShellSession:
     id_: str
     ps1: t.Union[str, None] = None
     setup: t.Union[str, None] = None
+    teardown: t.Union[str, None] = None
     exitcodes: list[int] = field(default_factory=lambda: [])
     fixtures: list[Fixture] = field(default_factory=lambda: [])
     timeout: int = 30
@@ -132,6 +133,10 @@ def extract(
                         # TODO: should we also check if setup would be overridden?
                         session.setup = setup
 
+                    if teardown := directives.get("teardown", None):
+                        # TODO: should we also check if teardown would be overridden?
+                        session.teardown = teardown
+
                     if timeout := directives.get("timeout"):
                         session.timeout = int(timeout)
 
@@ -148,6 +153,7 @@ def extract(
                         ps1=ps1,
                         exitcodes=parse_exitcodes(directives.get("exitcodes", "")),
                         setup=directives.get("setup", None),
+                        teardown=directives.get("teardown", None),
                         timeout=int(directives.get("timeout", "30")),
                         long_running=bool(
                             distutils.util.strtobool(
