@@ -63,13 +63,19 @@ class spawn(pexpect.spawn):
 def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> None:
     """Run testable sessions in a pexpect shell."""
     with Path(filename).parent:
+        # TODO: support configuring default prompt in the future.
+        prompt = "$ "
+
         # TODO: support configuring other shell than bash in the future.
         shell_command = "bash"
         shell_command_args = ["--norc", "--noprofile"]
 
         # Pass on every environment variable, but set $PS1 and $SHELL
         env = os.environ.copy()
-        env.update({"PS1": "$ ", "SHELL": shell_command})
+        env.update({
+            "PS1": prompt,
+            "SHELL": shell_command,
+        })
 
         shell = spawn(
             shell_command,
