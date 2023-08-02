@@ -12,18 +12,19 @@ import re
 import sys
 
 
+# regex for vt100 from https://stackoverflow.com/a/14693789/5008284
+ANSI_ESCAPE = re.compile(r"(\x1B[@-_][0-?]*[ -/]*[@-~]|\\[\[\]])")
+
+
 class NoANSIExpecter(pexpect.Expecter):
     """Custom Expecter to filter out ANSI escape code."""
-
-    # regex for vt100 from https://stackoverflow.com/a/14693789/5008284
-    ansi_escape = re.compile(r"(\x1B[@-_][0-?]*[ -/]*[@-~]|\\[\[\]])")
 
     def new_data(self, data: str) -> int:
         """Filter out ANSI escape code.
 
         And then call original `pexpect.Expecter.new_data` function.
         """
-        data = self.ansi_escape.sub("", data)
+        data = ANSI_ESCAPE.sub("", data)
         return pexpect.Expecter.new_data(self, data)
 
 
@@ -62,10 +63,17 @@ class spawn(pexpect.spawn):
 def test(filename: str, session: ShellSession, verbose: bool, debug: bool) -> None:
     """Run testable sessions in a pexpect shell."""
     with Path(filename).parent:
+        # TODO: support configuring other shell than bash in the future.
+        shell_command = "bash"
+        shell_command_args = ["--norc", "--noprofile"]
+
+        # Pass on every environment variable, but set $PS1 and $SHELL
         env = os.environ.copy()
-        env.update({"PS1": "$ "})
+        env.update({"PS1": "$ ", "SHELL": shell_command})
+
         shell = spawn(
-            "bash --norc --noprofile",
+            shell_command,
+            args=shell_command_args,
             encoding="utf-8",
             env=env,
             # The (height, width) of the TTY commands run in. 24 is the default.
@@ -151,6 +159,7 @@ def get_actual_output(shell: spawn) -> str:
     """Massage shell output to be able to compare it."""
     assert isinstance(shell.before, str)
     actual_output = shell.before.rstrip().replace("\r\n", "\n").replace("\r", "")
+    actual_output = ANSI_ESCAPE.sub("", actual_output)
     return "\n".join([line.rstrip() for line in actual_output.split("\n")])
 
 
