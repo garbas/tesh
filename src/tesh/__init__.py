@@ -52,8 +52,8 @@ def tesh(paths: t.Set[str], ext: str, verbose: bool, debug: bool) -> None:
                     if script:
                         script_path = Path(filename).parent / script
                         if not os.path.exists(script_path):
-                            fail("File does not exist:", cript_path)
-                        shutil.copyfile(script_path, tmpdir / script)
+                            fail("File does not exist:", script_path)
+                        shutil.copyfile(script_path, tmpdir / os.path.basename(script))
                 with changedir(tmpdir):
                     print("  ✨ Running", session.id_, " ", end="", flush=True)  # noqa
                     extract_blocks(session, verbose)
