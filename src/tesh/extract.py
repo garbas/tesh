@@ -207,7 +207,7 @@ def extract_blocks(session: ShellSession, verbose: bool) -> None:
 def get_prompt_regex(session: ShellSession) -> str:
     """Return the regex for the prompt."""
     if session.ps1:
-        return r"(^\$$|\$ |{ps1} )".format(ps1=re.escape(session.ps1))
+        return r"(^\$$|\$ |{ps1})".format(ps1=re.escape(session.ps1))
     else:
         return r"(^\$$|\$ )"
 
